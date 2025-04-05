@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Tech Gallery</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+  <style>
+    :root {
+      --grid-gap: 10px;
+      --primary-color: #00b4db;
+      --secondary-color: #0083b0;
+      --bg-color: #0c0c14;
+      --card-bg: #1a1a1a;
+      --text-color: #fff;
+      --secondary-text-color: #aaa;
+      --hover-scale: 1.03;
+      --transition-speed: 0.3s;
+      --navbar-background: rgba(26, 26, 26, 0.9);
+      --button-background: #00b4db;
+      --button-hover: #0083b0;
+      --primary-rgb: 0, 180, 219;
+      --card-alt-background: #2a2a3a;
+      --screen-background: #1a1a1a;
+      --header-background: #111;
+      --form-border: #666;
+      --form-text: #ddd;
+      --placeholder-color: #666;
+      --credits-text: #aaa;
+      --credits-link: #00b4db;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 10px;
+    }
+
+    .gallery-container {
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .gallery-title {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      position: relative;
+      display: inline-block;
+    }
+
+    .gallery-title::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -8px;
+      height: 3px;
+      width: 50px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+
+    .gallery-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .gallery-filter {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      font-size: 0.85rem;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background-color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    .gallery-search {
+      position: relative;
+    }
+
+    .search-input {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 30px;
+      color: var(--text-color);
+      font-size: 0.85rem;
+      width: 180px;
+      padding-left: 30px;
+      transition: all var(--transition-speed);
+    }
+
+    .search-input:focus {
+      outline: none;
+      background-color: rgba(255, 255, 255, 0.15);
+      width: 220px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .search-icon:before {
+      content: "🔍";
+      font-size: 12px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: var(--grid-gap);
+      position: relative;
+    }
+
+    .gallery-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: var(--card-bg);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      aspect-ratio: 1/1;
+      grid-column: span 1;
+      grid-row: span 1;
+      transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+      cursor: pointer;
+      transform-style: preserve-3d;
+    }
+
+    .gallery-item:hover {
+      transform: scale(var(--hover-scale));
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      z-index: 1;
+    }
+
+    .gallery-item.featured {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+
+    .gallery-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s ease;
+    }
+
+    .gallery-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+      padding: 12px;
+      color: white;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all var(--transition-speed);
+    }
+
+    .gallery-item:hover .gallery-overlay {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .gallery-title-small {
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gallery-desc {
+      display: none;
+    }
+
+    .gallery-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .gallery-tag {
+      background-color: rgba(255, 255, 255, 0.2);
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    .fullscreen-view {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .fullscreen-view.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .fullscreen-content {
+      max-width: 90%;
+      max-height: 90%;
+      position: relative;
+    }
+
+    .fullscreen-img {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .fullscreen-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .fullscreen-info {
+      position: absolute;
+      bottom: -60px;
+      left: 0;
+      right: 0;
+      color: white;
+    }
+
+    .fullscreen-title {
+      font-size: 1.2rem;
+      margin-bottom: 6px;
+    }
+
+    .fullscreen-desc {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .fullscreen-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      padding: 0 20px;
+    }
+
+    .nav-btn {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      pointer-events: auto;
+      font-size: 1.2rem;
+      border: none;
+    }
+
+    .nav-btn:hover {
+      background-color: var(--primary-color);
+    }
+
+    .loading-effect {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s ease-out;
+    }
+
+    .image-actions {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .gallery-item:hover .image-actions {
+      opacity: 1;
+    }
+
+    .action-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    .action-btn:hover {
+      background-color: var(--primary-color);
+    }
+
+    .action-tooltip {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-size: 0.65rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .action-btn:hover .action-tooltip {
+      opacity: 1;
+    }
+
+    @media (max-width: 1200px) {
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+      
+      .fullscreen-info {
+        bottom: -60px;
+      }
+      
+      .fullscreen-title {
+        font-size: 1.1rem;
+      }
+      
+      .fullscreen-desc {
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+      
+      .gallery-title {
+        font-size: 1.6rem;
+      }
+      
+      .search-input {
+        width: 140px;
+      }
+      
+      .search-input:focus {
+        width: 160px;
+      }
+    }
+
+    .skeleton {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--card-bg), var(--card-alt-background), var(--card-bg));
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .zoom-effect {
+      overflow: hidden;
+    }
+
+    .zoom-effect .gallery-img {
+      transition: transform 0.5s ease;
+    }
+
+    .zoom-effect:hover .gallery-img {
+      transform: scale(1.1);
+    }
+
+    .theme-switcher {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      position: relative;
+    }
+
+    .theme-switcher:hover {
+      background-color: var(--primary-color);
+    }
+
+    .theme-icon {
+      font-size: 1rem;
+    }
+
+    .light-theme {
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-color: #334155;
+    }
+
+    .image-count {
+      font-size: 0.85rem;
+      color: var(--secondary-text-color);
+      margin-left: 8px;
+    }
+
+    .view-options {
+      display: flex;
+      gap: 8px;
+    }
+
+    .view-btn {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-color);
+      transition: all var(--transition-speed);
+    }
+
+    .view-btn:hover, .view-btn.active {
+      background-color: var(--primary-color);
+    }
+
+    .compact-view .gallery-grid {
+      gap: 5px;
+    }
+
+    .expanded-view .gallery-grid {
+      gap: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="gallery-container">
+    <h1 class="gallery-title">Tech Gallery</h1>
+    
+    <div class="gallery-controls">
+      <div class="gallery-filter">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="design">Design</button>
+        <button class="filter-btn" data-filter="development">Dev</button>
+        <button class="filter-btn" data-filter="photography">Photo</button>
+        <span class="image-count">Showing <span id="image-counter">12</span> images</span>
+      </div>
+      
+      <div style="display: flex; gap: 10px;">
+        <div class="view-options">
+          <button class="view-btn" id="compact-view" title="Compact View">📱</button>
+          <button class="view-btn active" id="normal-view" title="Normal View">🖼️</button>
+          <button class="view-btn" id="expanded-view" title="Expanded View">📐</button>
+        </div>
+        
+        <div class="gallery-search">
+          <span class="search-icon"></span>
+          <input type="text" class="search-input" placeholder="Search...">
+        </div>
+        
+        <button class="theme-switcher" id="theme-toggle">
+          <span class="theme-icon">🌓</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="loading-effect" id="loading-bar"></div>
+    
+    <div class="gallery-grid" id="gallery">
+      <!-- Gallery items will be dynamically generated here -->
+    </div>
+  </div>
+  
+  <div class="fullscreen-view" id="fullscreen">
+    <div class="fullscreen-content">
+      <button class="fullscreen-close" id="close-fullscreen">✕</button>
+      <img src="" alt="" class="fullscreen-img" id="fullscreen-img">
+      <div class="fullscreen-info">
+        <h2 class="fullscreen-title" id="fullscreen-title"></h2>
+        <p class="fullscreen-desc" id="fullscreen-desc"></p>
+      </div>
+    </div>
+    <div class="fullscreen-nav">
+      <button class="nav-btn" id="prev-btn">←</button>
+      <button class="nav-btn" id="next-btn">→</button>
+    </div>
+  </div>
+
+  <script>
+    // Sample gallery data with shortened titles
+    const galleryData = [
+  {
+    id: 1,
+    src: "/Gallery/FB 001.jpg",
+    title: "Tech Scene",
+    description: "A glimpse into modern technology",
+    tags: ["design", "abstract"],
+    featured: true
+  },
+  {
+    id: 2,
+    src: "/Gallery/FB 002.jpg",
+    title: "Code Editor",
+    description: "Modern IDE with syntax highlighting",
+    tags: ["development", "ui"],
+    featured: false
+  },
+  {
+    id: 3,
+    src: "/Gallery/FB 003.jpg",
+    title: "Circuit Board",
+    description: "Close-up photography of electronic components",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 4,
+    src: "/Gallery/FB 004.jpg",
+    title: "Data Viz",
+    description: "Interactive chart showing network connections",
+    tags: ["design", "data"],
+    featured: false
+  },
+  {
+    id: 5,
+    src: "/Gallery/FB 005.jpg",
+    title: "Quantum Computing",
+    description: "Artistic representation of quantum bits",
+    tags: ["design", "abstract"],
+    featured: true
+  },
+  {
+    id: 6,
+    src: "/Gallery/FB 006.jpg",
+    title: "Web Design",
+    description: "Multi-device layout demonstration",
+    tags: ["development", "ui"],
+    featured: false
+  },
+  {
+    id: 7,
+    src: "/Gallery/FB 007.jpg",
+    title: "Server Room",
+    description: "Modern data center with rack servers",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 8,
+    src: "/Gallery/FB 008.jpg",
+    title: "Algorithm",
+    description: "Visual representation of a sorting algorithm",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 9,
+    src: "/Gallery/FB 009.jpg",
+    title: "AI Neural Net",
+    description: "Conceptual visualization of deep learning",
+    tags: ["design", "abstract"],
+    featured: true
+  },
+  {
+    id: 10,
+    src: "/Gallery/FB 010.jpg",
+    title: "Dev Setup",
+    description: "Modern developer workspace",
+    tags: ["photography", "workspace"],
+    featured: false
+  },
+  {
+    id: 11,
+    src: "/Gallery/FB 011.jpg",
+    title: "App UI",
+    description: "Clean, minimal mobile application design",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 12,
+    src: "/Gallery/FB 012.jpg",
+    title: "Binary",
+    description: "Close-up of binary data visualization",
+    tags: ["development", "abstract"],
+    featured: false
+  },
+  {
+    id: 13,
+    src: "/Gallery/FB 013.jpg",
+    title: "ML Chart",
+    description: "Machine learning progress visualization",
+    tags: ["development", "data"],
+    featured: false
+  },
+  {
+    id: 14,
+    src: "/Gallery/FB 014.jpg",
+    title: "VR Design",
+    description: "Virtual reality interface concept",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 15,
+    src: "/Gallery/FB 015.jpg",
+    title: "Hardware",
+    description: "Computer components closeup",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 16,
+    src: "/Gallery/FB 016.jpg",
+    title: "Network",
+    description: "Network infrastructure visualization",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 17,
+    src: "/Gallery/FB 017.jpg",
+    title: "Cloud Tech",
+    description: "Cloud computing visualization",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 18,
+    src: "/Gallery/FB 018.jpg",
+    title: "Smart Home",
+    description: "IoT devices in modern home",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 19,
+    src: "/Gallery/FB 019.jpg",
+    title: "Blockchain",
+    description: "Visual representation of blockchain technology",
+    tags: ["design", "abstract"],
+    featured: true
+  },
+  {
+    id: 20,
+    src: "/Gallery/FB 020.jpg",
+    title: "AR Demo",
+    description: "Augmented reality demo screenshot",
+    tags: ["development", "ui"],
+    featured: false
+  },
+  {
+    id: 21,
+    src: "/Gallery/FB 021.jpg",
+    title: "Tech Concept",
+    description: "A visualization of complex technological systems",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 22,
+    src: "/Gallery/FB 022.jpg",
+    title: "UI Dashboard",
+    description: "An interface for admin control panels",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 23,
+    src: "/Gallery/FB 023.jpg",
+    title: "Component Macro",
+    description: "Macro photography of electronic parts",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 24,
+    src: "/Gallery/FB 024.jpg",
+    title: "Data Cluster",
+    description: "Network of connected data points",
+    tags: ["design", "data"],
+    featured: false
+  },
+  {
+    id: 25,
+    src: "/Gallery/FB 025.jpg",
+    title: "Future Circuit",
+    description: "Digital abstraction of a circuit",
+    tags: ["design", "abstract"],
+    featured: true
+  },
+  {
+    id: 26,
+    src: "/Gallery/FB 026.jpg",
+    title: "Responsive Layout",
+    description: "Interface displayed across devices",
+    tags: ["development", "ui"],
+    featured: false
+  },
+  {
+    id: 27,
+    src: "/Gallery/FB 027.jpg",
+    title: "Datacenter Racks",
+    description: "Server equipment in modern facilities",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 28,
+    src: "/Gallery/FB 028.jpg",
+    title: "Sorting Tree",
+    description: "Algorithm visualization in tree form",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 29,
+    src: "/Gallery/FB 029.jpg",
+    title: "Deep Learning",
+    description: "Neural networks for AI",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 30,
+    src: "/Gallery/FB 030.jpg",
+    title: "Workspace Grid",
+    description: "Productivity setups in grid layout",
+    tags: ["photography", "workspace"],
+    featured: false
+  },
+  {
+    id: 31,
+    src: "/Gallery/FB 031.jpg",
+    title: "Mobile UX",
+    description: "Simplified mobile app interface",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 32,
+    src: "/Gallery/FB 032.jpg",
+    title: "Encryption Layer",
+    description: "Visual representation of secure data",
+    tags: ["development", "abstract"],
+    featured: false
+  },
+  {
+    id: 33,
+    src: "/Gallery/FB 033.jpg",
+    title: "Model Training",
+    description: "Machine learning in action",
+    tags: ["development", "data"],
+    featured: false
+  },
+  {
+    id: 34,
+    src: "/Gallery/FB 034.jpg",
+    title: "HUD Concept",
+    description: "Heads-up display for future UI",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 35,
+    src: "/Gallery/FB 035.jpg",
+    title: "Component Array",
+    description: "Organized layout of computer components",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 36,
+    src: "/Gallery/FB 036.jpg",
+    title: "Process Tree",
+    description: "Visual logic of a process",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 37,
+    src: "/Gallery/FB 037.jpg",
+    title: "Smart Grid",
+    description: "Energy-efficient tech diagram",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 38,
+    src: "/Gallery/FB 038.jpg",
+    title: "IoT Hub",
+    description: "Smart home control unit",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 39,
+    src: "/Gallery/FB 039.jpg",
+    title: "Crypto Logic",
+    description: "Blockchain encryption logic",
+    tags: ["design", "abstract"],
+    featured: true
+  },
+  {
+    id: 40,
+    src: "/Gallery/FB 040.jpg",
+    title: "Overlay UI",
+    description: "Transparent user interface mockup",
+    tags: ["development", "ui"],
+    featured: false
+  },
+  {
+    id: 41,
+    src: "/Gallery/FB 041.jpg",
+    title: "AI Vision",
+    description: "Machine perception model",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 42,
+    src: "/Gallery/FB 042.jpg",
+    title: "API Dashboard",
+    description: "Control panel for APIs",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 43,
+    src: "/Gallery/FB 043.jpg",
+    title: "Power Supply",
+    description: "Detail shot of a power unit",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 44,
+    src: "/Gallery/FB 044.jpg",
+    title: "Logic Flow",
+    description: "Program logic flowchart",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 45,
+    src: "/Gallery/FB 045.jpg",
+    title: "Design Grid",
+    description: "Wireframe design layout",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 46,
+    src: "/Gallery/FB 046.jpg",
+    title: "PCB Pattern",
+    description: "Printed circuit board pattern",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 47,
+    src: "/Gallery/FB 047.jpg",
+    title: "Data Sync",
+    description: "Visualization of data syncing",
+    tags: ["development", "data"],
+    featured: false
+  },
+  {
+    id: 48,
+    src: "/Gallery/FB 048.jpg",
+    title: "UI Panel",
+    description: "System control interface",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 49,
+    src: "/Gallery/FB 049.jpg",
+    title: "Heat Map",
+    description: "User behavior heat visualization",
+    tags: ["development", "data"],
+    featured: false
+  },
+  {
+    id: 50,
+    src: "/Gallery/FB 050.jpg",
+    title: "Virtual Control",
+    description: "UI for a virtual system",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 51,
+    src: "/Gallery/FB 051.jpg",
+    title: "System Build",
+    description: "Hands assembling hardware",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 52,
+    src: "/Gallery/FB 052.jpg",
+    title: "User Flow",
+    description: "Flow of a user journey",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 53,
+    src: "/Gallery/FB 053.jpg",
+    title: "Visual Sync",
+    description: "Synced screens in motion",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 54,
+    src: "/Gallery/FB 054.jpg",
+    title: "Desktop Closeup",
+    description: "Detailed photography of workspace",
+    tags: ["photography", "workspace"],
+    featured: false
+  },
+  {
+    id: 55,
+    src: "/Gallery/FB 055.jpg",
+    title: "UI Test",
+    description: "Interface testing in progress",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 56,
+    src: "/Gallery/FB 056.jpg",
+    title: "Dev Flow",
+    description: "Software development workflow",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 57,
+    src: "/Gallery/FB 057.jpg",
+    title: "Visual Field",
+    description: "Wide view of visual elements",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 58,
+    src: "/Gallery/FB 058.jpg",
+    title: "Soldering Shot",
+    description: "Hardware soldering process",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 59,
+    src: "/Gallery/FB 059.jpg",
+    title: "Info Nodes",
+    description: "Data nodes connected together",
+    tags: ["development", "data"],
+    featured: false
+  },
+  {
+    id: 60,
+    src: "/Gallery/FB 060.jpg",
+    title: "Wireframe View",
+    description: "Design skeleton of an app",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 61,
+    src: "/Gallery/FB 061.jpg",
+    title: "Core System",
+    description: "Inside a high-performance server",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 62,
+    src: "/Gallery/FB 062.jpg",
+    title: "Neural Output",
+    description: "End result of AI processing",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 63,
+    src: "/Gallery/FB 063.jpg",
+    title: "Touch Interface",
+    description: "Finger interaction with screen UI",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 64,
+    src: "/Gallery/FB 064.jpg",
+    title: "Modular Board",
+    description: "Hardware with attachable modules",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 65,
+    src: "/Gallery/FB 065.jpg",
+    title: "Signal Map",
+    description: "Network signal strength chart",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 66,
+    src: "/Gallery/FB 066.jpg",
+    title: "Design Glitch",
+    description: "Abstract digital distortion art",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 67,
+    src: "/Gallery/FB 067.jpg",
+    title: "Monitoring Panel",
+    description: "Tech panel with live metrics",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 68,
+    src: "/Gallery/FB 068.jpg",
+    title: "Heat Sink",
+    description: "Macro photo of PC heat sink",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 69,
+    src: "/Gallery/FB 069.jpg",
+    title: "Live Metrics",
+    description: "Graph of real-time data",
+    tags: ["development", "data"],
+    featured: false
+  },
+  {
+    id: 70,
+    src: "/Gallery/FB 070.jpg",
+    title: "UI Expansion",
+    description: "Expanding interface on screen",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 71,
+    src: "/Gallery/FB 071.jpg",
+    title: "Tech Array",
+    description: "Arrangement of various hardware tools",
+    tags: ["photography", "hardware"],
+    featured: true
+  },
+  {
+    id: 72,
+    src: "/Gallery/FB 072.jpg",
+    title: "Code Mapping",
+    description: "Visual map of code dependencies",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 73,
+    src: "/Gallery/FB 073.jpg",
+    title: "Light Pulse",
+    description: "Abstract pulse light effect",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 74,
+    src: "/Gallery/FB 074.jpg",
+    title: "UX Mockup",
+    description: "Clickable user journey model",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 75,
+    src: "/Gallery/FB 075.jpg",
+    title: "Hardware Testing",
+    description: "Engineer testing PC build",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 76,
+    src: "/Gallery/FB 076.jpg",
+    title: "System Topology",
+    description: "Layout of server connections",
+    tags: ["development", "diagram"],
+    featured: false
+  },
+  {
+    id: 77,
+    src: "/Gallery/FB 077.jpg",
+    title: "Pattern Grid",
+    description: "Minimalist grid design",
+    tags: ["design", "abstract"],
+    featured: false
+  },
+  {
+    id: 78,
+    src: "/Gallery/FB 078.jpg",
+    title: "Tablet UI",
+    description: "Modern interface on tablet device",
+    tags: ["design", "ui"],
+    featured: false
+  },
+  {
+    id: 79,
+    src: "/Gallery/FB 079.jpg",
+    title: "Build Tools",
+    description: "Tools for custom PC build",
+    tags: ["photography", "hardware"],
+    featured: false
+  },
+  {
+    id: 80,
+    src: "/Gallery/FB 080.jpg",
+    title: "Logic Layout",
+    description: "Complex logic diagram sketch",
+    tags: ["development", "diagram"],
+    featured: true
+  },
+  {
+    id: 81,
+    src: "/Gallery/FB 081.png",
+    title: "AI Vision Field",
+    description: "AI detecting objects in space",
+    tags: ["design", "abstract"],
+    featured: true
+  },
+  {
+    id: 82,
+    src: "/Gallery/FB 082.jpg",
+    title: "UI Animation",
+    description: "Animated interface behavior",
+    tags: ["design", "ui"],
+    featured: false
+  }
+];
+
+    // DOM elements
+    const gallery = document.getElementById('gallery');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const searchInput = document.querySelector('.search-input');
+    const loadingBar = document.getElementById('loading-bar');
+    const fullscreenView = document.getElementById('fullscreen');
+    const fullscreenImg = document.getElementById('fullscreen-img');
+    const fullscreenTitle = document.getElementById('fullscreen-title');
+    const fullscreenDesc = document.getElementById('fullscreen-desc');
+    const closeFullscreen = document.getElementById('close-fullscreen');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const themeToggle = document.getElementById('theme-toggle');
+    const imageCounter = document.getElementById('image-counter');
+    const compactViewBtn = document.getElementById('compact-view');
+    const normalViewBtn = document.getElementById('normal-view');
+    const expandedViewBtn = document.getElementById('expanded-view');
+
+    // Current state variables
+    let currentFilter = 'all';
+    let currentIndex = 0;
+    let filteredItems = [...galleryData];
+    let isLoading = false;
+
+    // Initialize gallery
+    function initGallery() {
+      renderGallery();
+      initEventListeners();
+      initTiltEffect();
+      
+      // Simulate loading effect
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+      }, 800);
+    }
+
+    // Show loading effect
+    function showLoading() {
+      isLoading = true;
+      loadingBar.style.transform = 'scaleX(1)';
+    }
+
+    // Hide loading effect
+    function hideLoading() {
+      isLoading = false;
+      loadingBar.style.transform = 'scaleX(0)';
+    }
+
+    // Render gallery items
+    function renderGallery() {
+      gallery.innerHTML = '';
+      filteredItems = galleryData.filter(item => {
+        const matchesFilter = currentFilter === 'all' || item.tags.includes(currentFilter);
+        const matchesSearch = searchInput.value === '' || 
+                            item.title.toLowerCase().includes(searchInput.value.toLowerCase()) || 
+                            item.description.toLowerCase().includes(searchInput.value.toLowerCase());
+        return matchesFilter && matchesSearch;
+      });
+
+      imageCounter.textContent = filteredItems.length;
+      
+      filteredItems.forEach((item, index) => {
+        const galleryItem = document.createElement('div');
+        galleryItem.className = `gallery-item zoom-effect ${item.featured ? 'featured' : ''}`;
+        galleryItem.dataset.index = index;
+        
+        // Add skeleton loader
+        const skeleton = document.createElement('div');
+        skeleton.className = 'skeleton';
+        galleryItem.appendChild(skeleton);
+        
+        const img = document.createElement('img');
+        img.className = 'gallery-img';
+        img.src = item.src;
+        img.alt = item.title;
+        
+        // Remove skeleton when image loads
+        img.onload = () => {
+          setTimeout(() => {
+            skeleton.remove();
+          }, 300);
+        };
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'gallery-overlay';
+        
+        const title = document.createElement('h3');
+        title.className = 'gallery-title-small';
+        title.textContent = item.title;
+        
+        const tags = document.createElement('div');
+        tags.className = 'gallery-tags';
+        
+        // Only show one tag to reduce clutter
+        if (item.tags.length > 0) {
+          const tagEl = document.createElement('span');
+          tagEl.className = 'gallery-tag';
+          tagEl.textContent = item.tags[0];
+          tags.appendChild(tagEl);
+        }
+        
+        const actions = document.createElement('div');
+        actions.className = 'image-actions';
+        
+        const favoriteBtn = document.createElement('button');
+        favoriteBtn.className = 'action-btn';
+        favoriteBtn.innerHTML = '❤️';
+        
+        const favoriteTooltip = document.createElement('span');
+        favoriteTooltip.className = 'action-tooltip';
+        favoriteTooltip.textContent = 'Favorite';
+        favoriteBtn.appendChild(favoriteTooltip);
+        
+        actions.appendChild(favoriteBtn);
+        
+        overlay.appendChild(title);
+        overlay.appendChild(tags);
+        
+        galleryItem.appendChild(img);
+        galleryItem.appendChild(overlay);
+        galleryItem.appendChild(actions);
+        
+        // Add click event for fullscreen view
+        galleryItem.addEventListener('click', (e) => {
+          if (e.target.closest('.action-btn')) return;
+          openFullscreen(index);
+        });
+        
+        gallery.appendChild(galleryItem);
+        
+        // Animate item entry
+        gsap.fromTo(galleryItem, 
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.4, delay: index * 0.03 }
+        );
+      });
+    }
+
+    // Initialize event listeners
+    function initEventListeners() {
+      // Filter buttons
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (isLoading) return;
+          
+          showLoading();
+          
+          filterButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          currentFilter = btn.dataset.filter;
+          
+          setTimeout(() => {
+            renderGallery();
+            hideLoading();
+          }, 400);
+        });
+      });
+      
+      // Search input
+      searchInput.addEventListener('input', () => {
+        if (isLoading) return;
+        
+        showLoading();
+        
+        setTimeout(() => {
+          renderGallery();
+          hideLoading();
+        }, 300);
+      });
+      
+      // Fullscreen controls
+      closeFullscreen.addEventListener('click', closeFullscreenView);
+      
+      prevBtn.addEventListener('click', () => {
+        navigateFullscreen(-1);
+      });
+      
+      nextBtn.addEventListener('click', () => {
+        navigateFullscreen(1);
+      });
+      
+      // Listen for Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && fullscreenView.classList.contains('active')) {
+          closeFullscreenView();
+        } else if (e.key === 'ArrowLeft' && fullscreenView.classList.contains('active')) {
+          navigateFullscreen(-1);
+        } else if (e.key === 'ArrowRight' && fullscreenView.classList.contains('active')) {
+          navigateFullscreen(1);
+        }
+      });
+      
+      // Theme toggle
+      themeToggle.addEventListener('click', toggleTheme);
+      
+      // View options
+      compactViewBtn.addEventListener('click', () => {
+        document.body.classList.remove('expanded-view');
+        document.body.classList.add('compact-view');
+        updateActiveViewButton(compactViewBtn);
+      });
+      
+      normalViewBtn.addEventListener('click', () => {
+        document.body.classList.remove('compact-view', 'expanded-view');
+        updateActiveViewButton(normalViewBtn);
+      });
+      
+      expandedViewBtn.addEventListener('click', () => {
+        document.body.classList.remove('compact-view');
+        document.body.classList.add('expanded-view');
+        updateActiveViewButton(expandedViewBtn);
+      });
+    }
+
+    // Update active view button
+    function updateActiveViewButton(activeBtn) {
+      [compactViewBtn, normalViewBtn, expandedViewBtn].forEach(btn => {
+        btn.classList.remove('active');
+      });
+      activeBtn.classList.add('active');
+    }
+
+    // Initialize tilt effect
+    function initTiltEffect() {
+      VanillaTilt.init(document.querySelectorAll(".gallery-item"), {
+        max: 5,
+        speed: 400,
+        glare: true,
+        "max-glare": 0.2,
+      });
+    }
+
+    // Toggle theme
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+      themeToggle.querySelector('.theme-icon').textContent = 
+        document.body.classList.contains('light-theme') ? '🌙' : '🌓';
+    }
+
+    // Open fullscreen view
+    function openFullscreen(index) {
+      currentIndex = index;
+      const item = filteredItems[index];
+      
+      fullscreenImg.src = item.src;
+      fullscreenTitle.textContent = item.title;
+      fullscreenDesc.textContent = item.description;
+      
+      fullscreenView.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Close fullscreen view
+    function closeFullscreenView() {
+      fullscreenView.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Navigate through fullscreen images
+    function navigateFullscreen(direction) {
+      currentIndex = (currentIndex + direction + filteredItems.length) % filteredItems.length;
+      
+      const item = filteredItems[currentIndex];
+      
+      // Fade transition
+      gsap.to(fullscreenImg, { opacity: 0, duration: 0.2, onComplete: () => {
+        fullscreenImg.src = item.src;
+        fullscreenTitle.textContent = item.title;
+        fullscreenDesc.textContent = item.description;
+        
+        gsap.to(fullscreenImg, { opacity: 1, duration: 0.2 });
+      }});
+    }
+
+    // Initialize gallery on page load
+    window.addEventListener('DOMContentLoaded', initGallery);
+  </script>
+</body>
+</html>
